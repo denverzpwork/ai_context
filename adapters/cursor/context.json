@@ -1,0 +1,18 @@
+{
+  "output_dir": ".cursor",
+  "documents": [
+    {
+      "id": "rule-security-001",
+      "kind": "rule",
+      "source": "rules/security.rule.md",
+      "target": "rules/security.rule.md",
+      "version": 1,
+      "status": null,
+      "complexity": null,
+      "checksum": "sha256:51f0970706adf6ed0b9cee6287e328dea219068b5c8c4613aa96b77fc8f95b4e",
+      "tags": []
+    }
+  ],
+  "relations": [],
+  "active_set": []
+}
