@@ -6,6 +6,11 @@
 
 **Author:** denver.zp
 
+
+![xkcd: Standards](https://imgs.xkcd.com/comics/standards.png)
+*xkcd #927: How new standards are born*
+
+
 ## Background
 
 The AI Context Engineering domain is evolving rapidly, yet almost every tool expects its own format and file set.

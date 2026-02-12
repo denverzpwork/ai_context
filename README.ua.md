@@ -6,6 +6,11 @@
 
 **Author:** denver.zp
 
+
+![xkcd: Standards](https://imgs.xkcd.com/comics/standards.png)
+*xkcd #927: Як народжуються нові стандарти*
+
+
 ## Передумови появи
 
 Сфера AI Context Engineering розвивається швидко, але майже кожен інструмент очікує власний формат і набір файлів.
