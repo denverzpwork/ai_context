@@ -6,7 +6,14 @@ from pathlib import Path
 
 import click
 
-from .config import find_ai_context_root, find_aictx_dir, load_config
+from .config import (
+    find_ai_context_root,
+    find_aictx_dir,
+    load_config,
+    resolve_path,
+    validate_context_root,
+    validate_project_root,
+)
 from .indexer import build_index
 from .validate import run_validate
 from .manifest import (
@@ -20,21 +27,43 @@ from .document import Document
 
 
 def get_roots(ctx: click.Context) -> tuple[Path, Path]:
-    """Return (ai_context_root, aictx_dir)."""
+    """Return (context_root, aictx_dir)."""
     cwd = Path.cwd()
     aictx_dir = find_aictx_dir(cwd)
     if not aictx_dir:
         aictx_dir = cwd / ".aictx"
-    root = find_ai_context_root(cwd, ctx.obj.get("root") if ctx.obj else None)
+    context_root_opt = ctx.obj.get("context_root") if ctx.obj else None
+    if context_root_opt is not None:
+        try:
+            root_path = resolve_path(str(context_root_opt), cwd)
+            validate_context_root(root_path)
+            root = root_path
+        except ValueError as e:
+            click.echo(str(e), err=True)
+            sys.exit(1)
+    else:
+        root = find_ai_context_root(cwd, None)
     return root, aictx_dir
 
 
 @click.group()
-@click.option("--root", type=click.Path(path_type=Path), default=None, help="ai_context root (default: auto-detect)")
+@click.option(
+    "--context-root",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Context root (ai_context; default: auto-detect). Must contain .aictx or rules/.",
+)
+@click.option(
+    "--project-root",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Project root (base for adapter output_dir; default: from config or context root).",
+)
 @click.pass_context
-def main(ctx: click.Context, root: Path | None) -> None:
+def main(ctx: click.Context, context_root: Path | None, project_root: Path | None) -> None:
     ctx.ensure_object(dict)
-    ctx.obj["root"] = root
+    ctx.obj["context_root"] = context_root
+    ctx.obj["project_root"] = project_root
 
 
 @main.command()
@@ -168,6 +197,18 @@ def export(ctx: click.Context, adapter: str) -> None:
     if adapter not in config.get("adapters", []):
         click.echo(f"Adapter '{adapter}' not in config.adapters.", err=True)
         sys.exit(1)
+    # Resolve project_root: CLI overrides config
+    project_root_path = None
+    try:
+        if ctx.obj.get("project_root") is not None:
+            project_root_path = resolve_path(str(ctx.obj["project_root"]), Path.cwd())
+            validate_project_root(project_root_path)
+        elif config.get("project_root"):
+            project_root_path = resolve_path(config["project_root"], aictx_dir)
+            validate_project_root(project_root_path)
+    except ValueError as e:
+        click.echo(str(e), err=True)
+        sys.exit(1)
     load_plugins_from_dir(aictx_dir / "plugins")
     _, errors, index = run_validate(root)
     if errors:
@@ -177,7 +218,7 @@ def export(ctx: click.Context, adapter: str) -> None:
     emit("before_export", root=root, config=config, index=index, adapter=adapter)
     try:
         from .adapters.base import run_export
-        run_export(root, aictx_dir, index, adapter)
+        run_export(root, aictx_dir, index, adapter, project_root=project_root_path)
     except (FileNotFoundError, ValueError) as e:
         click.echo(str(e), err=True)
         sys.exit(1)

@@ -8,7 +8,7 @@ Sources: README (convention), SPEC (processor contract). Language: Python. Depen
 
 **Principle:** Convention documents (ai_context) and the aictx processor are kept separate. Everything that belongs to aictx **MUST** live **inside** `.aictx/`.
 
-* **Content root (ai_context):** repository root or a directory set via `--root` / search upward from cwd. It contains `manifests.yaml`, `rules/`, `tasks/`, `shared/`, `adapters/` — convention data only, no processor code.
+* **Content root (ai_context):** repository root or a directory set via `--context-root` / search upward from cwd. It contains `manifests.yaml`, `rules/`, `tasks/`, `shared/`, `adapters/` — convention data only, no processor code.
 * **Everything related to the processor — inside `.aictx/`:**
 
   * **venv:** `.aictx/venv/` (or `.aictx/.venv/`). Create with `python3 -m venv .aictx/venv`; install deps from `.aictx/` with `pip install -e .aictx/`.
@@ -23,7 +23,7 @@ Sources: README (convention), SPEC (processor contract). Language: Python. Depen
 ## 2. Configuration and paths
 
 * Read `.aictx/config.yaml`: at least `convention_version`, `adapters`.
-* Resolve ai_context root from cwd or explicit flag.
+* Resolve context root from cwd or `--context-root`; project root from config or `--project-root` (for adapter output).
 * Use a single resolver across all commands.
 
 ---

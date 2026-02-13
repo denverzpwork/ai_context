@@ -29,7 +29,8 @@ This keeps manifest ids unique and stable. Reference validation accepts either t
 
 ### Root resolution
 
-- **ai_context root:** No environment variable. Resolution is: explicit `--root`, or walk up from cwd until `manifests.yaml`, `rules/`, or `tasks/` is found; else cwd.
+- **Context root (ai_context):** No environment variable. Resolution is: explicit `--context-root` (validated: must contain `.aictx` or `rules/`), or walk up from cwd until `manifests.yaml`, `rules/`, or `tasks/` is found; else cwd.
+- **Project root:** Optional. Used as base for adapter `output_dir`. Resolution: explicit `--project-root` (validated: must exist, be a directory, writable), or config `project_root` (path relative to `.aictx` or absolute); if neither set, adapters use context root.
 - **.aictx dir:** Walk up from cwd until a directory containing `.aictx` is found; then `.aictx` is that path. If not found, `aictx_dir` falls back to `cwd/.aictx` so config/state paths still work when run from inside the repo.
 
 ### build-manifest always runs validate
@@ -47,7 +48,7 @@ This keeps manifest ids unique and stable. Reference validation accepts either t
 
 ### Adapter contract (declaration-only)
 
-- Adapter contract is in the repo: `ai_context/adapters/<name>/context.json` (read-only). It must contain `output_dir`; the exported document set is **only** the explicit `documents` array in that file (each entry: id, kind, source, target). The processor does not select or filter from the index: if a document is not listed in the declaration, it is not exported. If `documents` is missing or empty, only the output directory is ensured and `output_dir/context.json` is written with an empty documents list (zero file copies). The processor validates that every declared source exists under the ai_context root (fail fast), enriches entries from the index when the document is indexed (version, checksum, status, tags), copies exactly the declared set, and writes `output_dir/context.json` with `output_dir` and `documents` only (no relations/active_set).
+- Adapter contract is in the repo: `ai_context/adapters/<name>/context.json` (read-only). It must contain `output_dir`; the exported document set is **only** the explicit `documents` array in that file (each entry: id, kind, source, target). The processor does not select or filter from the index: if a document is not listed in the declaration, it is not exported. If `documents` is missing or empty, only the output directory is ensured and `output_dir/context.json` is written with an empty documents list (zero file copies). The processor validates that every declared source exists under the context root (fail fast), enriches entries from the index when the document is indexed (version, checksum, status, tags), copies exactly the declared set. Output is written under project root (from config or `--project-root`) or context root; writes `output_dir/context.json` with `output_dir` and `documents` only (no relations/active_set).
 
 ### Plugin loading
 
@@ -76,7 +77,7 @@ This keeps manifest ids unique and stable. Reference validation accepts either t
    Plan says “Source — index (or built manifest if preferred).” Implementation always uses the **index** (fresh walk), not the built manifest. So list reflects current files, not the last manifest.
 
 7. **Environment variable for root**  
-   Plan suggested “env var or walk up from cwd.” Only walk (and `--root`) were implemented; no env var for ai_context root.
+   Plan suggested “env var or walk up from cwd.” Only walk and `--context-root` / `--project-root` were implemented; no env var for context or project root.
 
 ---
 

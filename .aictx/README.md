@@ -30,7 +30,7 @@ See [SPEC.md](SPEC.md) for the full contract and [PLAN.md](PLAN.md) for the impl
 ## Requirements
 
 - **Python 3.9+**
-- Commands are run from the **repository root** (the ai_context root) or with `--root` pointing to it.
+- Commands are run from the **context root** (the ai_context directory) or with `--context-root` pointing to it.
 
 ---
 
@@ -60,13 +60,16 @@ You can run aictx in either of these ways:
 
 ---
 
-## Global option: `--root`
+## Global options: `--context-root` and `--project-root`
 
-All commands accept an optional `--root` to set the ai_context root explicitly. If omitted, the root is detected by walking up from the current directory until `manifests.yaml`, `rules/`, or `tasks/` is found; otherwise the current directory is used.
+- **`--context-root`** — Context root (ai_context directory: rules, tasks, adapters, sources). If omitted, detected by walking up from the current directory until `manifests.yaml`, `rules/`, or `tasks/` is found; otherwise the current directory. When provided (absolute or relative to cwd), must contain `.aictx` or `rules/`.
+
+- **`--project-root`** — Project root (base for adapter `output_dir`; e.g. where `.cursor` or `.github` is written). If omitted, taken from config `project_root` when set; otherwise adapters write under the context root. When provided, must be an existing writable directory.
 
 ```bash
-aictx --root /path/to/ai_context validate
-aictx build-manifest --root /path/to/ai_context
+aictx --context-root /path/to/ai_context validate
+aictx build-manifest --context-root /path/to/ai_context
+aictx export cursor --project-root /path/to/repo
 ```
 
 ---
@@ -80,10 +83,13 @@ convention_version: "0.0.1"
 adapters:
   - cursor
   # - copilot
+# Optional: project root (base for adapter output_dir). Relative to .aictx; absolute path also supported.
+# project_root: "../.."
 ```
 
 - **convention_version** — Matches the ai_context convention (see repo `README.md`).
 - **adapters** — List of adapter names allowed for `aictx export <name>`.
+- **project_root** — Optional. Path to project root (where adapters write output, e.g. `.cursor`). Relative to `.aictx` (e.g. `"../.."` for layout `project_root/ai_context/.aictx`); absolute path allowed. If missing and `--project-root` is not set, adapters use the context root.
 
 If `config.yaml` is missing, defaults are used (e.g. `adapters: [cursor]`).
 
@@ -174,7 +180,7 @@ aictx export copilot   # if listed in config.adapters
 
 The adapter name must appear in `config.yaml` under `adapters`. Validation is run before export; on failure, export is not performed.
 
-**Cursor adapter:** Reads `ai_context/adapters/cursor/context.json` for `output_dir`, copies each document from root/source to root/output_dir/target, writes `.cursor/context.json` with documents, relations, and active_set.
+**Cursor adapter:** Reads `ai_context/adapters/cursor/context.json` for `output_dir`, copies each document from context root/source to project root (or context root if not set)/output_dir/target, writes `output_dir/context.json` with documents.
 
 ---
 
@@ -189,7 +195,7 @@ The adapter name must appear in `config.yaml` under `adapters`. Validation is ru
 
 Adapters live in the processor (e.g. `.aictx/src/aictx/adapters/`) but their **contract** is defined in the repo under `ai_context/adapters/<name>/`:
 
-- **context.json** — Machine-readable; minimum field `output_dir` (relative to repo root). Read-only; the processor builds the document list from the index, copies files from root/source to root/output_dir/target, and writes `output_dir/context.json`.
+- **context.json** — Machine-readable; minimum field `output_dir` (relative to project root or context root). Read-only; the processor builds the document list from the index, copies files from context root/source to (project root or context root)/output_dir/target, and writes `output_dir/context.json`.
 - **README.md** (optional) — Human-readable description of the adapter and output format.
 
 Example: `ai_context/adapters/cursor/` contains `context.json` (e.g. `{"output_dir": ".cursor"}`) and `README.md`.

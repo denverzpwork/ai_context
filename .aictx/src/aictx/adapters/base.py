@@ -85,9 +85,9 @@ def build_payload(
     }
 
 
-def _copy_documents(root: Path, output_dir: str, documents: list) -> None:
-    """Copy each document from root/source to output_dir/target. Sources are already validated by build_payload."""
-    out_path = Path(root) / output_dir if not output_dir.startswith("/") else Path(output_dir)
+def _copy_documents(root: Path, output_base: Path, output_dir: str, documents: list) -> None:
+    """Copy each document from root/source to output_base/output_dir/target. Sources from root."""
+    out_path = output_base / output_dir if not output_dir.startswith("/") else Path(output_dir)
     for doc in documents:
         src = root / doc["source"]
         dst = out_path / doc["target"]
@@ -95,17 +95,25 @@ def _copy_documents(root: Path, output_dir: str, documents: list) -> None:
         shutil.copy2(src, dst)
 
 
-def run_export(root: Path, aictx_dir: Path, index: Dict[str, Any], adapter_name: str) -> None:
+def run_export(
+    root: Path,
+    aictx_dir: Path,
+    index: Dict[str, Any],
+    adapter_name: str,
+    project_root: Path | None = None,
+) -> None:
     """
     Execute export from declaration: read adapters/<name>/context.json, build payload from its documents list,
     validate sources, enrich from index, copy declared set only, write output_dir/context.json (output_dir + documents).
+    Sources are always under root (context root). Output goes to project_root/output_dir if project_root is set, else root/output_dir.
     """
     spec = load_adapter_spec(root, adapter_name)
     payload = build_payload(spec, root, index, adapter_name)
     output_dir = payload["output_dir"]
-    out_path = Path(root) / output_dir if not output_dir.startswith("/") else Path(output_dir)
+    output_base = project_root if project_root is not None else root
+    out_path = output_base / output_dir if not output_dir.startswith("/") else Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    _copy_documents(root, output_dir, payload["documents"])
+    _copy_documents(root, output_base, output_dir, payload["documents"])
     context_out = out_path / "context.json"
     with open(context_out, "w", encoding="utf-8") as f:
         json.dump(

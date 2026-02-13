@@ -315,7 +315,7 @@ ai_context/adapters/<name>/context.json
 
 The file defines:
 
-* `output_dir`
+* `output_dir` — base path for export (relative to project root when set, else context root)
 * explicit list of documents
 * target paths
 * optional relations or metadata required by the consumer
