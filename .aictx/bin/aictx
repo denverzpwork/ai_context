@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Wrapper to run aictx from .aictx/venv without activating it.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AICTX_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+exec "$AICTX_DIR/venv/bin/aictx" "$@"

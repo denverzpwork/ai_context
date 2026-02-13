@@ -1,0 +1,4 @@
+convention_version: "0.0.2"
+adapters:
+  - cursor
+  - copilot

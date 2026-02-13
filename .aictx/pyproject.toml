@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aictx"
+version = "1.0.0"
+description = "Processor for ai_context: validate, index, build manifest, export via adapters"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pyyaml>=6.0",
+    "click>=8.0",
+]
+
+[project.scripts]
+aictx = "aictx.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

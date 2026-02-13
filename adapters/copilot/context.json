@@ -1,11 +1,11 @@
 {
-  "output_dir": ".cursor",
+  "output_dir": ".github",
   "documents": [
     {
       "id": "rule-security-001",
       "kind": "rule",
       "source": "rules/security.rule.md",
-      "target": "rules/security.rule.md"
+      "target": "instructions/security.instructions.md"
     }
   ]
 }

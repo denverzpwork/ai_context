@@ -1,12 +1,8 @@
 # Cursor adapter
 
-Export of active context for Cursor. Result is written to `.cursor` (or as configured in `context.json`).
+Export of context for Cursor. The processor reads `context.json` in this directory (read-only). Export is **declaration-only**: only documents listed in the `documents` array are exported. Each entry must have `id`, `kind`, `source` (path relative to ai_context root), and `target` (path relative to `output_dir`). If `documents` is missing or empty, no files are copied. The processor validates that every source exists and enriches entries from the index when available.
 
-The file contains:
-
-- `documents`: list of document metadata (id, kind, path, version, status, complexity, tags)
-- `relations`: graph of references (from, to, type)
-- `active_set`: list of document ids with status `active`
+Result: declared files are copied into `output_dir` (`.cursor`), and `output_dir/context.json` is written with `output_dir` and the document list (with enriched metadata when indexed).
 
 Run from repo root:
 
@@ -15,3 +11,7 @@ aictx export cursor
 ```
 
 (Ensure `.aictx/venv` is activated and `aictx` is on PATH.)
+
+Source:
+ - https://cursor.com/en-US/docs/context/rules
+ - https://cursor.com/learn/context
